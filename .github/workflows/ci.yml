@@ -53,12 +53,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ''
 
-      - name: Run TruffleHog Scan
-        uses: trufflehog/trufflehog-action@main
-        with:
-          base: ${{ github.event.repository.default_branch }}
-          head: ${{ github.ref }}
-          extra_args: --debug --only-verified
+      - name: Run TruffleHog Scan (Docker)
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/pwd" trufflesecurity/trufflehog:latest filesystem /pwd --only-verified
 
       - name: Run Trivy Filesystem Vulnerability Scan
         uses: aquasecurity/trivy-action@master
@@ -66,7 +63,7 @@ jobs:
           scan-type: 'fs'
           scan-dir: '.'
           severity: 'HIGH,CRITICAL'
-          exit-code: '0' # اجعلها '1' إذا كنت تريد إيقاف البايپلاين عند وجود ثغرات
+          exit-code: '0'
 
   test:
     name: Run Tests
