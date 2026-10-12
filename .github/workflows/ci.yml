@@ -61,6 +61,7 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE }}
+          SONAR_HOST_URL: 'https://sonarcloud.io'
 
       - name: Run Trivy Filesystem Vulnerability Scan
         uses: aquasecurity/trivy-action@master
