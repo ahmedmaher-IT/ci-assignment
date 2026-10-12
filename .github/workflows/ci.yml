@@ -57,6 +57,11 @@ jobs:
         run: |
           docker run --rm -v "${{ github.workspace }}:/pwd" trufflesecurity/trufflehog:latest filesystem /pwd --only-verified
 
+      - name: Run SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONARQUBE }}
+
       - name: Run Trivy Filesystem Vulnerability Scan
         uses: aquasecurity/trivy-action@master
         with:
@@ -82,7 +87,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest
+          pip install -r requirements-dev
 
       - name: Run Pytest
         run: |
