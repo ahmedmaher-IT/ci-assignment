@@ -138,9 +138,11 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      HAS_SECRET: ${{ secrets.NOTIFY_TOKEN != '' }}
     steps:
       - name: Check Secret and Notify
-        if: ${{ secrets.NOTIFY_TOKEN != '' }}
+        if: env.HAS_SECRET == 'true'
         env:
           TOKEN: ${{ secrets.NOTIFY_TOKEN }}
         run: |
