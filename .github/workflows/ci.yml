@@ -99,7 +99,7 @@ jobs:
       - name: Create Tarball
         run: |
           mkdir -p dist
-          tar -czf dist/temperature-${{ steps.set_version.outputs.version }}.tar.gz temperature.py README.md
+          tar -czf dist/temperature-${{ steps.set_version.outputs.version }}.tar.gz temperature.py
 
       - name: Upload Package Artifact
         uses: actions/upload-artifact@v4
