@@ -138,15 +138,13 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    env:
-      NOTIFY_SET: ${{ secrets.NOTIFY_TOKEN != '' && 'true' || 'false' }}
     steps:
       - name: Check Secret and Notify
-        if: env.NOTIFY_SET == 'true'
+        if: ${{ secrets.NOTIFY_TOKEN != '' }}
         env:
           TOKEN: ${{ secrets.NOTIFY_TOKEN }}
         run: |
-          TOKEN_LEN=${{ length(env.TOKEN) }}
+          TOKEN_LEN=${#TOKEN}
           echo "Notification sent (token length: $TOKEN_LEN)"
 
       - name: Write Job Summary
