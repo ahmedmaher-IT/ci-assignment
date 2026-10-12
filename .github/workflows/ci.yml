@@ -37,8 +37,40 @@ permissions:
   contents: read
 
 jobs:
+  security-pre-build:
+    name: Pre-Build Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ''
+
+      - name: Run TruffleHog Scan
+        uses: trufflehog/trufflehog-action@main
+        with:
+          base: ${{ github.event.repository.default_branch }}
+          head: ${{ github.ref }}
+          extra_args: --debug --only-verified
+
+      - name: Run Trivy Filesystem Vulnerability Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-dir: '.'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '0' # اجعلها '1' إذا كنت تريد إيقاف البايپلاين عند وجود ثغرات
+
   test:
     name: Run Tests
+    needs: security-pre-build
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -108,6 +140,25 @@ jobs:
           path: dist/temperature-*.tar.gz
           if-no-files-found: error
 
+  security-post-build:
+    name: Post-Build Security Scan
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download Package Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: package
+          path: dist
+
+      - name: Run Trivy Scan on Artifact
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-dir: 'dist/'
+          severity: 'HIGH,CRITICAL'
+
   verify:
     name: Verify Package
     needs: package
@@ -135,7 +186,7 @@ jobs:
 
   report:
     name: Generate Report
-    needs: [test, package]
+    needs: [test, package, security-pre-build, security-post-build]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -152,7 +203,7 @@ jobs:
 
       - name: Write Job Summary
         env:
-          REPORT_TITLE: ${{ vars.REPORT_TITLE || 'Temperature CI Report' }}
+          REPORT_TITLE: ${{ vars.REPORT_TITLE || 'DevSecOps Pipeline Report' }}
           VERSION_VAL: ${{ needs.package.result == 'success' && needs.package.outputs.version || 'n/a' }}
           COMMIT_SHA: ${{ github.sha }}
           EVENT_NAME: ${{ github.event_name }}
@@ -189,5 +240,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `✅ CI passed. Package version ${version} is ready.`
+              body: `✅ DevSecOps CI passed. Package version ${version} is secure and ready.`
             });
