@@ -174,7 +174,6 @@ jobs:
     name: PR Comment Bot
     needs: package
     if: github.event_name == 'pull_request'
-    runs-on-ubuntu-latest # Wait, runs-on should be ubuntu-latest
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
