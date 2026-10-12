@@ -62,6 +62,11 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE }}
           SONAR_HOST_URL: 'https://sonarcloud.io'
+        with:
+          args: >
+            -Dsonar.projectKey=ci-assignment
+            -Dsonar.sources=.
+            -Dsonar.exclusions=*/.venv/,/__pycache__/,/.github/*
 
       - name: Run Trivy Filesystem Vulnerability Scan
         uses: aquasecurity/trivy-action@master
